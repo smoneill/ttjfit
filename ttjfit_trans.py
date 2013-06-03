@@ -9,4 +9,13 @@ else:
 
 tf = r.TFile.Open(file_name)
 
-tf.ls()
+hists = dict([(h.GetName(),tf.Get(h.GetName())) for h in tf.GetListOfKeys()])
+
+print hists
+
+ndata = hists["data"].Integral()
+
+print ndata
+
+
+
