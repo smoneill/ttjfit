@@ -1,7 +1,6 @@
 {
 //TBrowser *b=new TBrowser;
 double ndata=data->Integral();
-cout<<ndata<<"n/";  //added 
 TH1F *bg = new TH1F("bg","bg",50,0,0.11); 
 // bg->Sumw2();
  bg->Add(wj,st,0.54,0.46);
