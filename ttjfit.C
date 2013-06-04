@@ -68,11 +68,11 @@ double scale=ndata*fttq;
 ttq1->Scale(scale);
 TH1F *sm2 = new TH1F("sm2","sm2",50,0,0.11); 
  sm2->Add(sm1,ttq1,1.,1.);
- sm2->SetFillColor(kRed);
+ sm2->SetLineColor(kRed);
  sm2->Draw("same");
- sm1->SetFillColor(kYellow);
+ sm1->SetLineColor(kBlue+2);
  sm1->Draw("same");
- bg1->SetFillColor(kBlue);
+ bg1->SetLineColor(kRed-7);
  bg1->Draw("same");
 
 cout << "fttg from Lhood=" << fttg << " +-" << dfttg<<  "\n";
