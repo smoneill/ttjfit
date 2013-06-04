@@ -76,13 +76,14 @@ sm2 = r.TH1F("sm2","sm2",50,0,0.11)     #histogram sm2
 sm2.Add(sm1,ttq1,1.,1.)
 
 #Color settings for histograms
-sm2.SetFillColor(r.kRed)
-sm1.SetFillColor(r.kYellow)
-bg1.SetFillColor(r.kBlue)
+sm2.SetLineColor(r.kRed)
+sm1.SetLineColor(r.kBlue+2)
+bg1.SetLineColor(r.kRed-7)
 
 sm2.Draw("same")
 sm1.Draw("same")
 bg1.Draw("same")
+#hists["data"].SaveAs("frac.eps")
 
 #Outputs fractions
 print "fttg from Lhood=", fttg, "+/-", dfttg
