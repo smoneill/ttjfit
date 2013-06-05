@@ -2,7 +2,6 @@
 ###Sean O'Neill###
 
 import ROOT as r
-from ROOT import TF1
 import sys
 
 if len(sys.argv)<2:
@@ -10,6 +9,11 @@ if len(sys.argv)<2:
     exit()
 else:
     file_name = sys.argv[1]  
+
+#Where to print to
+s = file_name.split(".")
+s1 = s[0].split("_")
+name = "frac_"+s1[1]+".pdf"
 
 #Opens file
 tf = r.TFile.Open(file_name)
@@ -20,7 +24,7 @@ hists = dict([(h.GetName(),tf.Get(h.GetName())) for h in tf.GetListOfKeys()])
 #Stores number of events
 ndata = hists["data"].Integral()
 
-#Creates histogram and fills them
+#Creates histogram and fills them from file
 bg = r.TH1F("bg","bg",50,0,0.11)
 bg.Add(hists["wj"],hists["st"],0.54,0.46)
 ttg = r.TH1F("ttg","ttg",50,0,0.11)
@@ -80,11 +84,15 @@ sm2.SetLineColor(r.kRed)
 sm1.SetLineColor(r.kBlue+2)
 bg1.SetLineColor(r.kRed-7)
 
+#Draws the three fits created on c0
 sm2.Draw("same")
 sm1.Draw("same")
 bg1.Draw("same")
-#hists["data"].SaveAs("frac.eps")
 
 #Outputs fractions
 print "fttg from Lhood=", fttg, "+/-", dfttg
 print "fttq from Lhood=", fttq, "+/-", dfttq
+
+#Prints to file 
+c0.Print(name)
+
