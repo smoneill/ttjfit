@@ -89,10 +89,36 @@ sm2.Draw("same")
 sm1.Draw("same")
 bg1.Draw("same")
 
+fttg = round(fttg,7)
+fttq = round(fttq,7)
+dfttg = round(dfttg,7)
+dfttq = round(dfttq,7)
+
 #Outputs fractions
 print "fttg from Lhood=", fttg, "+/-", dfttg
 print "fttq from Lhood=", fttq, "+/-", dfttq
 
-#Prints to file 
+#Prints histograms to file                                                     
 c0.Print(name)
 
+#Opens a file for storing fraction values
+f = open("frac.txt","a+r")
+
+#Makes sure to append only for two fractions
+length = len(f.readlines())
+if length < 6:
+
+    if s1[1]=="el":
+        f.write("Electron Fractions\n")
+    else:
+        f.write("Muon Fractions\n")
+
+    table1 = "fttg  = "+str(fttg)+"  +/- "+str(dfttg)+"\n"
+    table2 = "fttq  = "+str(fttq)+" +/- "+str(dfttq)+"\n"
+    #Writes the two fractions to the file
+    f.write(table1)
+    f.write(table2)
+
+else:
+    print "File full"
+    exit()
