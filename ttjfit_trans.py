@@ -18,9 +18,6 @@ path_name = "graphs/frac_"+s1[1]+".pdf"
 #Opens ROOT file
 tf = r.TFile.Open(file_name)
 
-#Opens efficiency file
-f = open("data/test.txt","r")
-
 #Dictionary of data
 hists = dict([(h.GetName(),tf.Get(h.GetName())) for h in tf.GetListOfKeys()])
 
