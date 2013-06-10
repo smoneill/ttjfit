@@ -1,0 +1,88 @@
+<html>
+  <head>
+
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  </head>
+  <body bgcolor="#FFFFFF" text="#000000">
+    <br>
+    <div class="moz-forward-container"><br>
+      <br>
+      -------- Original Message --------
+      <table class="moz-email-headers-table" border="0" cellpadding="0"
+        cellspacing="0">
+        <tbody>
+          <tr>
+            <th nowrap="nowrap" valign="BASELINE" align="RIGHT">Subject:
+            </th>
+            <td>Data for your project.</td>
+          </tr>
+          <tr>
+            <th nowrap="nowrap" valign="BASELINE" align="RIGHT">Date: </th>
+            <td>Wed, 20 Mar 2013 20:18:28 -0400</td>
+          </tr>
+          <tr>
+            <th nowrap="nowrap" valign="BASELINE" align="RIGHT">From: </th>
+            <td>Burt Betchart <a class="moz-txt-link-rfc2396E" href="mailto:bbetchar@pas.rochester.edu">&lt;bbetchar@pas.rochester.edu&gt;</a></td>
+          </tr>
+          <tr>
+            <th nowrap="nowrap" valign="BASELINE" align="RIGHT">To: </th>
+            <td>Christi Erba <a class="moz-txt-link-rfc2396E" href="mailto:cerba@u.rochester.edu">&lt;cerba@u.rochester.edu&gt;</a>, "Regina
+              Demina" <a class="moz-txt-link-rfc2396E" href="mailto:regina@pas.rochester.edu">&lt;regina@pas.rochester.edu&gt;</a></td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+      <br>
+      <pre>Hi Christi,
+
+Attached are 4 files.
+
+* cerba_expect_4j.txt
+How many events of each category to expect.
+
+* cerba_efficiencies.txt
+The efficiency of each category under the cut
+- from 4jets to 5jets
+- the additional cut of just the middle bin of the tridiscriminant
+You have to multiply the numbers
+
+* cerba_el.root
+* cerba_mu.root
+
+contain the shape of each category, and the observed data.
+
+Notice that there is no efficiency or shape for the multijet (mj)
+category.  You can just pretend that the mj category is additional wj.
+
+TFractionFitter may help you:
+<a class="moz-txt-link-freetext" href="http://root.cern.ch/root/htmldoc/TFractionFitter.html">http://root.cern.ch/root/htmldoc/TFractionFitter.html</a>
+
+The expected (POWHEG) relative amounts of different ttbar production
+types, before any selection, are:
+f_gg: 0.6519
+f_qg: 0.1820
+f_qq: 0.1339
+f_ag: 0.0323
+
+The tt category selection efficiencies prior to requiring the 5th jet are
+[electron+jets]
+ttgg:  0.04526
+ttqg:  0.05156
+ttqq:  0.03401
+ttag:  0.05467
+
+[muons+jets]
+ ttgg: 0.05164
+ ttqg: 0.05826
+ ttqq: 0.03903
+ ttag: 0.06181
+
+
+Burt
+
+</pre>
+      <br>
+    </div>
+    <br>
+  </body>
+</html>
