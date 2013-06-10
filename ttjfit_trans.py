@@ -13,30 +13,58 @@ else:
 #Where to print to
 s = file_name.split(".")
 s1 = s[0].split("_")
-name = "frac_"+s1[1]+".pdf"
+path_name = "graphs/frac_"+s1[1]+".pdf"
 
-#Opens file
+#Opens ROOT file
 tf = r.TFile.Open(file_name)
+
+#Opens efficiency file
+f = open("data/test.txt","r")
 
 #Dictionary of data
 hists = dict([(h.GetName(),tf.Get(h.GetName())) for h in tf.GetListOfKeys()])
 
+#Opens efficiency file
+f = open("data/cerba_efficiencies.txt","r")
+
+#Dictionary of efficiencies based on the file entered
+eff = {}
+i = 1
+for line in f:
+    line = line.strip()
+    name = line.split()
+    eff[name[0]]=name[1]
+    i +=1
+    if s1[1] == "el" and i ==11:
+        break
+
+#Deletes non-digit entries
+del eff["#"]
+
+#Converts string values to floats
+eff["st"]=float(eff["st"])
+eff["wj"]=float(eff["wj"])
+eff["ttqq"]=float(eff["ttqq"])
+eff["ttgg"]=float(eff["ttgg"])
+eff["ttqg"]=float(eff["ttqg"])
+eff["ttag"]=float(eff["ttag"])
+
 #Stores number of events
 ndata = hists["data"].Integral()
 
-#Creates histogram and fills them from file
+#Creates histogram and fills them from file, efficiencies from file
 bg = r.TH1F("bg","bg",50,0,0.11)
-bg.Add(hists["wj"],hists["st"],0.54,0.46)
+bg.Add(hists["wj"],hists["st"],eff["wj"],eff["st"])
 ttg = r.TH1F("ttg","ttg",50,0,0.11)
-ttg.Add(hists["ttgg"],hists["ttqq"],0.87,0.13)
+ttg.Add(hists["ttgg"],hists["ttqq"],eff["ttgg"],eff["ttqq"])
 ttq = r.TH1F("ttq","ttq",50,0,0.11) 
-ttq.Add(hists["ttqg"],hists["ttag"],0.84,0.16)
+ttq.Add(hists["ttqg"],hists["ttag"],eff["ttqg"],eff["ttag"])
 bg1 = r.TH1F("bg1","bg1",50,0,0.11)
-bg1.Add(hists["wj"],hists["st"],0.54,0.46)
+bg1.Add(hists["wj"],hists["st"],eff["wj"],eff["st"])
 ttg1 = r.TH1F("ttg1","ttg1",50,0,0.11)
-ttg1.Add(hists["ttgg"],hists["ttqq"],0.87,0.13)
+ttg1.Add(hists["ttgg"],hists["ttqq"],eff["ttgg"],eff["ttqq"])
 ttq1 = r.TH1F("ttq1","ttq1",50,0,0.11)
-ttq1.Add(hists["ttqg"],hists["ttag"],0.84,0.16) 
+ttq1.Add(hists["ttqg"],hists["ttag"],eff["ttqg"],eff["ttag"]) 
 
 #Monte Carlo histogram array
 mc80 = r.TObjArray(3)
@@ -57,7 +85,9 @@ if status == 0:
    result0 = fit0.GetPlot()
    hists["data"].Draw("Ep")
 
-#allow to pass-by-ref to GetResult
+#tf.Close()
+
+#Allows to pass-by-ref to GetResult
 fbg , dfbg = r.Double(0) , r.Double(0) 
 
 #Gets results from the fitting
@@ -70,52 +100,60 @@ fit0.GetResult(1,fttg,dfttg)
 scale = ndata*fttg
 ttg1.Scale(scale)                       #scales ttg1
 sm1 = r.TH1F("sm1", "sm1",50,0,0.11)    #histogram sm1
-sm1.Add(bg1,ttg1,1.,1.)
+sm1.Add(bg1,ttg1,1.,1.)                 #fills sm1
 
 fttq , dfttq = r.Double(0) , r.Double(0)
 fit0.GetResult(2,fttq,dfttq)
 scale = ndata*fttq
 ttq1.Scale(scale)                       #scales ttq1
 sm2 = r.TH1F("sm2","sm2",50,0,0.11)     #histogram sm2
-sm2.Add(sm1,ttq1,1.,1.)
+sm2.Add(sm1,ttq1,1.,1.)                 #fills sm2
 
 #Color settings for histograms
 sm2.SetLineColor(r.kRed)
 sm1.SetLineColor(r.kBlue+2)
 bg1.SetLineColor(r.kRed-7)
 
-#Draws the three fits created on c0
-sm2.Draw("same")
-sm1.Draw("same")
-bg1.Draw("same")
+#Draws the three fits created with c0 on one canvas
+sm2.Draw("same")                        #draws sm1
+sm1.Draw("same")                        #draws sm2
+bg1.Draw("same")                        #draws bg1
 
+#Rounds all the values for display purposes
 fttg = round(fttg,7)
 fttq = round(fttq,7)
 dfttg = round(dfttg,7)
 dfttq = round(dfttq,7)
 
-#Outputs fractions
+#Outputs fractions to screen
+if s1[1] == "el":
+    print "Electron Channel"
+if s1[1] == "mu":
+    print "Muon Channel"
+
 print "fttg from Lhood=", fttg, "+/-", dfttg
 print "fttq from Lhood=", fttq, "+/-", dfttq
 
-#Prints histograms to file                                                     
-c0.Print(name)
+#Prints histograms to file                                            
+c0.Print(path_name)
 
 #Opens a file for storing fraction values
-f = open("frac.txt","a+r")
+f = open("frac_el.txt","a+r")
 
 #Makes sure to append only for two fractions
 length = len(f.readlines())
 if length < 6:
 
-    if s1[1]=="el":
-        f.write("Electron Fractions\n")
-    else:
-        f.write("Muon Fractions\n")
+    if s1[1] == "el":
+        f.write("Electron ")
+    if s1[1] == "mu"
+        f.write("Muon ")
 
+    f.write("Fractions\n")
     table1 = "fttg  = "+str(fttg)+"  +/- "+str(dfttg)+"\n"
     table2 = "fttq  = "+str(fttq)+" +/- "+str(dfttq)+"\n"
-    #Writes the two fractions to the file
+
+#Writes the two fractions to the file
     f.write(table1)
     f.write(table2)
 
