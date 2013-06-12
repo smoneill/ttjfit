@@ -143,7 +143,7 @@ if length < 6:
 
     if s1[1] == "el":
         f.write("Electron ")
-    if s1[1] == "mu"
+    if s1[1] == "mu":
         f.write("Muon ")
 
     f.write("Fractions\n")
