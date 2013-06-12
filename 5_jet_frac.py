@@ -1,3 +1,5 @@
+###Converts the preselection fractions into 4 jet fractions then 5 jet fractions
+###Author: Sean O'Neill
 import ROOT as r
 import sys
 import numpy as np
