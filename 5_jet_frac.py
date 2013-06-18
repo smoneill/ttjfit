@@ -67,43 +67,66 @@ with open("data/cerba_expect_4j.txt") as ex:
     name = [name[k] for k in range(2,7)]
     signal = dict([(name[k][0], float(name[k][column])) for k in range(len(name))])
 
-#Creates ordered list of interactions
-comps = ["ttgg","ttqg","ttag","ttqq"]
-#List of background interactions - mj
-bg_inter = ["wj","st","dy"]
-
+#Components of background and tt
+comps = ["ttgg","ttqg","ttag","ttqq","wj","st","dy","mj"]
+tt_comps = ["ttgg","ttqg","ttag","ttqq"]
+bg_comps = ["wj","st","dy","mj"]
 
 #Takes specified comps out of the three dicts
-frac_pre = [frac_pre_dict[k] for k in comps]
-eff4 = [eff_dict[k] for k in comps]
-temp4_5 = [eff4_5[k] for k in comps]
+tt_pre_eff = [eff_dict[k] for k in tt_comps]
+tt_pre_frac = [frac_pre_dict[k] for k in tt_comps]
 
+tt_eff4 = Normalize(tt_pre_eff, tt_pre_frac)
+tt_4j_evnts = [tt_eff4.norm_comps[k]*signal["tt"] for k in range(len(tt_eff4.norm_comps))]
+
+bg_4j_evnts = [signal[k] for k in bg_comps]
+bg_4j_evnts[0] += bg_4j_evnts[-1]    #wj gets absorbed into mj
+#bg_comps[0] += "+"+bg_comps[-1]
+bg_comps.remove("mj")
+bg_4j_evnts.remove(bg_4j_evnts[-1])
+tt_eff4_5 = [eff4_5[k] for k in tt_comps]
+tt_5j_evnts = Normalize(tt_4j_evnts, tt_eff4_5)
+
+bg_eff4_5 = [eff4_5[k] for k in bg_comps]
+bg_5j_evnts = Normalize(bg_4j_evnts, bg_eff4_5)
+
+#Total background and tt events for 5-jets
+tt_total = sum(tt_5j_evnts.comps)
+bg_total = sum(bg_5j_evnts.comps)
+
+#Relative background signal for 5-jets
+backgrd_frac = bg_total/(tt_total+bg_total)
+
+print "Background components: \n", zip(bg_comps,bg_5j_evnts.comps)
+print "tt components: \n", zip(tt_comps,tt_5j_evnts.comps)
+print "Background fraction: \n",backgrd_frac
+print "Normalized tt components: \n",tt_5j_evnts.norm_comps
+
+
+'''
 #Takes mj, wj, st, dy from the efficiency and preselection dicts !(mj uses the wj eff)!
-bg_eff4 = [eff_dict[k] for k in bg_inter]
 bg_eff5 = [eff4_5[k] for k in bg_inter]
 bg_inter.append("mj")
-bg_pre = [signal[k] for k in bg_inter]
-bg_eff4.append(eff_dict["wj"])
+bg_4 = [signal[k] for k in bg_inter]
 bg_eff5.append(eff4_5["wj"])
 
 #Multiplies the eff and the signal for background
-bg_4 = Normalize(bg_pre,bg_eff4)
-bg_5 = Normalize(bg_4.comps,bg_eff5)
+bg_5 = Normalize(bg_4,bg_eff5)
 
 #Creates the norm of the 4 jets and 5 jets (using Normalize)
 jets_4 = Normalize(eff4,frac_pre)
 jets_5 = Normalize(temp4_5,jets_4.norm_comps)
 
 #Multiples the tt comps by the efficiencies and signal
-bg_tt = Normalize(temp4_5, jets_4.comps)
+bg_tt = Normalize(temp4_5, frac_pre)#could be jets_4.comps
 tt = [signal["tt"]*y for y in bg_tt.comps]
 
 #Background fraction
-bg_frac = sum(bg_5.comps)/sum(tt)
+bg_frac = sum(bg_5.comps)/(sum(bg_5.comps)+sum(tt))
 print "Background Fraction: ",bg_frac
 
 #print "4 Jets components:","\n", zip(comps,jets_4.comps)
 #print "4 Jets normed components:","\n", zip(comps,jets_4.norm_comps) 
-print "5 Jets normed components:","\n", zip(comps,jets_5.norm_comps)
-
-
+#print "5 Jets normed components:","\n", zip(comps,jets_5.norm_comps)
+print "5 jets normed components:", "\n", zip(comps,bg_tt.norm_comps)
+'''
