@@ -19,8 +19,6 @@ channel = s1[1]
 eff_dict = {}       #Dict of 4 jet efficiencies
 frac_pre_dict = {}  #Dict of pre-selection fractions
 eff4_5 = {}         #Dict of 4->5 jet efficiencies
-i = 1               
-k = 1
 
 class Normalize(object):
     def __init__(self,vec1,vec2):
@@ -41,7 +39,7 @@ with open("data/fracs_effs_edit.txt") as f:
         low, high = 0,7
     if s1[1] == "mu":
         low, high = 7,14
-    name = [name[k] for k in range(low,high)]
+    name = name[low:high]
     eff_dict = dict([(name[k][0],float(name[k][2])) for k in range(len(name))])
     frac_pre_dict= dict([(name[k][0],float(name[k][4])) for k in range(len(name))])
     
@@ -53,7 +51,7 @@ with open("data/cerba_efficiencies.txt") as ef:
         low, high = 2,10
     if s1[1] == "mu":
         low, high = 11,19
-    name = [name[k] for k in range(low,high)] 
+    name = name[low:high] 
     eff4_5 = dict([(name[k][0],float(name[k][1])) for k in range(len(name))])
 
 #Stuffs expected events into signal dict
@@ -103,30 +101,4 @@ print "Background fraction: \n",backgrd_frac
 print "Normalized tt components: \n",tt_5j_evnts.norm_comps
 
 
-'''
-#Takes mj, wj, st, dy from the efficiency and preselection dicts !(mj uses the wj eff)!
-bg_eff5 = [eff4_5[k] for k in bg_inter]
-bg_inter.append("mj")
-bg_4 = [signal[k] for k in bg_inter]
-bg_eff5.append(eff4_5["wj"])
 
-#Multiplies the eff and the signal for background
-bg_5 = Normalize(bg_4,bg_eff5)
-
-#Creates the norm of the 4 jets and 5 jets (using Normalize)
-jets_4 = Normalize(eff4,frac_pre)
-jets_5 = Normalize(temp4_5,jets_4.norm_comps)
-
-#Multiples the tt comps by the efficiencies and signal
-bg_tt = Normalize(temp4_5, frac_pre)#could be jets_4.comps
-tt = [signal["tt"]*y for y in bg_tt.comps]
-
-#Background fraction
-bg_frac = sum(bg_5.comps)/(sum(bg_5.comps)+sum(tt))
-print "Background Fraction: ",bg_frac
-
-#print "4 Jets components:","\n", zip(comps,jets_4.comps)
-#print "4 Jets normed components:","\n", zip(comps,jets_4.norm_comps) 
-#print "5 Jets normed components:","\n", zip(comps,jets_5.norm_comps)
-print "5 jets normed components:", "\n", zip(comps,bg_tt.norm_comps)
-'''
