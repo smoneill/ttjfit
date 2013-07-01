@@ -8,14 +8,20 @@ class program(object):
     def __init__(self,rootFile):
         '''Calculates the background fraction as well as the background and tt components'''
 
+        self.bgComps = ["wj","st","dy","mj"]
+        self.ttComps = ["ttgg","ttqg","ttag","ttqq"]
+
         channelList = self.parseArgument(rootFile)
 
         effDict, preFracDict, eff4_5Dict, signalDict = self.parseData(channelList)
 
-        backgroundFrac,ttComps,bgComps,tt_5j,bg_5j = self.calculateFractions(effDict, preFracDict, eff4_5Dict, signalDict)
-
-        self.printFractions(backgroundFrac,ttComps,bgComps,tt_5j,bg_5j)
+        self.printDictionaries(effDict,preFracDict,eff4_5Dict,signalDict)
         
+        backgroundFrac,tt_5jet,bg_5jet = self.calculateFractions(effDict, preFracDict, eff4_5Dict, signalDict)
+
+        self.printFractions(backgroundFrac,tt_5jet,bg_5jet)
+
+############################################################################################        
     def parseArgument(self,rootFile):
         '''Makes sure a root file is specified and sets the channel'''
 
@@ -82,24 +88,25 @@ class program(object):
         return dict([(dic[k][0],float(dic[k][columnNum]))for k in range(len(dic))])
 
 ####################################################################################
+    def printDictionaries(self,effDict,preFracDict,eff4_5Dict,signalDict):
+        '''Prints the dictionaries to make sure the files have been parsed correctly'''
+        print "Preselection Eff ",effDict,"\n","PreFraction ",preFracDict,"\n","Eff4_5 ",eff4_5Dict,"\n","Signal ",signalDict,"\n"
+
+####################################################################################
     def calculateFractions(self,effDict,preFracDict,eff4_5Dict,signalDict):
         '''Calculates the background fraction as well as background and tt components by applying efficiency filters'''
         
-        comps = ["ttgg","ttqg","ttag","ttqq","wj","st","dy","mj"]
-        bgComps = ["wj","st","dy","mj"]
-        ttComps = ["ttgg","ttqg","ttag","ttqq"]
-
         #Unpacks dictionaries depending on their components
-        bg_4jet = [signalDict[k] for k in bgComps]
-        ttPreEff = [effDict[k] for k in ttComps]
-        ttPreFrac = [preFracDict[k] for k in ttComps]
-        ttEff4_5 = [eff4_5Dict[k] for k in ttComps]
+        bg_4jet = [signalDict[k] for k in self.bgComps]
+        ttPreEff = [effDict[k] for k in self.ttComps]
+        ttPreFrac = [preFracDict[k] for k in self.ttComps]
+        ttEff4_5 = [eff4_5Dict[k] for k in self.ttComps]
                 
         bg_4jet[0] += bg_4jet[-1]    #mj gets absorbed into wj                                    
-        bgComps.remove("mj")                                                                                                                  
+        self.bgComps.remove("mj")                                                                                                           
         bg_4jet.remove(bg_4jet[-1])                                                                                                   
         
-        bgEff4_5 = [eff4_5Dict[k] for k in bgComps]         
+        bgEff4_5 = [eff4_5Dict[k] for k in self.bgComps]         
         
         #Moves the tt components from preselection->4 jet
         tt_4jet = self.efficiencyFilter(ttPreEff,ttPreFrac,signalDict["tt"])
@@ -114,7 +121,7 @@ class program(object):
         #Calculates the background fraction
         bckgrndFrac = bgTotal/(ttTotal+bgTotal)
         
-        return bckgrndFrac, ttComps, bgComps, bg_5jet, tt_5jet
+        return bckgrndFrac, bg_5jet, tt_5jet
 
     def efficiencyFilter(self,vector1,vector2,number=1):
         '''Filters the events depending on the respective efficiencies, to move them from one selection to another'''
@@ -127,11 +134,11 @@ class program(object):
         return piecewiseProduct
 
 #####################################################################################
-    def printFractions(self,backgroundFrac,ttComps,bgComps,tt_5jet,bg_5jet):
+    def printFractions(self,backgroundFrac,tt_5jet,bg_5jet):
         '''Prints the background fraction, background components, and tt components'''
         print "Background Fraction: %.6f" %backgroundFrac
-        print "Background Components: \n", zip(bgComps,bg_5jet)
-        print "tt Components: \n", zip(ttComps,tt_5jet)
+        print "Background Components: \n", zip(self.bgComps,bg_5jet)
+        print "tt Components: \n", zip(self.ttComps,tt_5jet)
 
 if __name__=='__main__':
     program(sys.argv)
