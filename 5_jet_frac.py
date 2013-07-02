@@ -17,9 +17,11 @@ class program(object):
 
         self.printDictionaries(effDict,preFracDict,eff4_5Dict,signalDict)
         
-        backgroundFrac,tt_5jet,bg_5jet = self.calculateFractions(effDict, preFracDict, eff4_5Dict, signalDict)
+        self.tt_5jet,self.bg_5jet = self.calculateFractions(effDict, preFracDict, eff4_5Dict, signalDict)
 
-        self.printFractions(backgroundFrac,tt_5jet,bg_5jet)
+        self.backgroundFrac = self.calculateBackground(self.tt_5jet,self.bg_5jet)
+
+        self.printFractions(self.backgroundFrac,self.tt_5jet,self.bg_5jet)
 
 ############################################################################################        
     def parseArgument(self,rootFile):
@@ -114,14 +116,14 @@ class program(object):
         #Moves both the background and tt components from 4->5 jet
         tt_5jet = self.efficiencyFilter(tt_4jet,ttEff4_5)
         bg_5jet = self.efficiencyFilter(bg_4jet,bgEff4_5)
+        return tt_5jet, bg_5jet
 
+    def calculateBackground(self,tt_5jet,bg_5jet):
         ttTotal = sum(tt_5jet)
         bgTotal = sum(bg_5jet)
-
-        #Calculates the background fraction
         bckgrndFrac = bgTotal/(ttTotal+bgTotal)
         
-        return bckgrndFrac, bg_5jet, tt_5jet
+        return bckgrndFrac
 
     def efficiencyFilter(self,vector1,vector2,number=1):
         '''Filters the events depending on the respective efficiencies, to move them from one selection to another'''
