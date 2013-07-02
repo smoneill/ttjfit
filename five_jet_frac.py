@@ -4,7 +4,7 @@ import ROOT as r
 import sys
 import numpy as np
 
-class program(object):
+class fiveJetEfficiencyFilter(object):
     def __init__(self,rootFile):
         '''Calculates the background fraction as well as the background and tt components'''
 
@@ -15,13 +15,14 @@ class program(object):
 
         effDict, preFracDict, eff4_5Dict, signalDict = self.parseData(channelList)
 
-        self.printDictionaries(effDict,preFracDict,eff4_5Dict,signalDict)
+        tt_5jet,bg_5jet = self.calculateFractions(effDict, preFracDict, eff4_5Dict, signalDict)
+
+        backgroundFrac = self.calculateBackground(tt_5jet,bg_5jet)
+
         
-        self.tt_5jet,self.bg_5jet = self.calculateFractions(effDict, preFracDict, eff4_5Dict, signalDict)
 
-        self.backgroundFrac = self.calculateBackground(self.tt_5jet,self.bg_5jet)
-
-        self.printFractions(self.backgroundFrac,self.tt_5jet,self.bg_5jet)
+        for item in ["backgroundFrac","tt_5jet","bg_5jet","effDict", "preFracDict", "eff4_5Dict", "signalDict"]:
+            setattr(self,item,eval(item))
 
 ############################################################################################        
     def parseArgument(self,rootFile):
@@ -45,7 +46,8 @@ class program(object):
         else:
             num = [7,14,11,19,1,2,7]
         name = ["loFrac", "hiFrac", "loCerba", "hiCerba", "column", "loExpect", "hiExpect"]
-        return dict([(name[k],num[k]) for k in range(len(num))])
+        return dict(zip(name,num))
+#return dict([(name[k],num[k]) for k in range(len(num))])
 
 ############################################################################################    
     def parseData(self,channelList):
@@ -79,20 +81,21 @@ class program(object):
         
         with open(fileName) as f:
             stripped = [line.strip() for line in f.readlines()]
-            translated = [stripped[k].translate(None, ";:") for k in range(len(stripped))]
+            translated = [s.translate(None, ";:") for s in stripped]
             if fileName == "data/cerba_efficiencies.txt":
-                return [translated[k].split("\t0") for k in range(len(translated))]
+                return [s.split("\t0") for s in translated]
             else:
-                return [translated[k].split() for k in range(len(translated))]
+                return [s.split() for s in translated]
 
     def makeDictionary(self,dic,columnNum):
         '''Stuffs dictionaries for storing data'''
         return dict([(dic[k][0],float(dic[k][columnNum]))for k in range(len(dic))])
 
 ####################################################################################
-    def printDictionaries(self,effDict,preFracDict,eff4_5Dict,signalDict):
-        '''Prints the dictionaries to make sure the files have been parsed correctly'''
-        print "Preselection Eff ",effDict,"\n","PreFraction ",preFracDict,"\n","Eff4_5 ",eff4_5Dict,"\n","Signal ",signalDict,"\n"
+    def formatsDictionaries(self):
+        '''Formats the dictionaries to make sure the files have been parsed correctly'''
+        return "".join(["Preselection Eff ",str(self.effDict),"\n","PreFraction ",str(self.preFracDict),"\n","Eff4_5 ",
+                    str(self.eff4_5Dict),"\n ","Signal ",str(self.signalDict),"\n"])
 
 ####################################################################################
     def calculateFractions(self,effDict,preFracDict,eff4_5Dict,signalDict):
@@ -129,18 +132,21 @@ class program(object):
         '''Filters the events depending on the respective efficiencies, to move them from one selection to another'''
         piecewiseProduct = [x*y for x,y in zip(vector1,vector2)]
         dotProduct = np.dot(vector1,vector2)
-        normalizedComponents = [piecewiseProduct[k]/dotProduct for k in range(len(piecewiseProduct))]
-        event = [normalizedComponents[k]*number for k in range(len(normalizedComponents))]
+        normalizedComponents = [s/dotProduct for s in piecewiseProduct]
+        event = [s*number for s in normalizedComponents]
         if number != 1:
             return event
         return piecewiseProduct
 
 #####################################################################################
-    def printFractions(self,backgroundFrac,tt_5jet,bg_5jet):
-        '''Prints the background fraction, background components, and tt components'''
-        print "Background Fraction: %.6f" %backgroundFrac
-        print "Background Components: \n", zip(self.bgComps,bg_5jet)
-        print "tt Components: \n", zip(self.ttComps,tt_5jet)
+    def formatsFractions(self):
+        '''Formats the background fraction, background components, and tt components'''
+        return "".join(["Background Fraction: %.6f \n" %self.backgroundFrac,
+                    "Background Components: \n \n", str(zip(self.bgComps,self.bg_5jet)),
+                    "tt Components: \n \n", str(zip(self.ttComps,self.tt_5jet))])
+
+    def __str__(self):
+        return self.formatsDictionaries() + self.formatsFractions()
 
 if __name__=='__main__':
-    program(sys.argv)
+    print fiveJetEfficiencyFilter(sys.argv)
