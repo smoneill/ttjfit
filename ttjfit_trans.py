@@ -1,15 +1,17 @@
 ###ttjfit translation from C++ to PyRoot###
 ###Sean O'Neill###
-from five_jet_frac import fiveJetEfficiencyFilter
 import ROOT as r
-r.gROOT.SetBatch(1)
 import sys
+from five_jet_frac import fiveJetEfficiencyFilter
+from fractions import componentSolver
+r.gROOT.SetBatch(1)
 
 #Where to print to
 file_name = sys.argv[1]
 s = file_name.split(".")
 s1 = s[0].split("_")
 path_name = "graphs/frac_"+s1[1]+".pdf"
+path_name2 = "graphs/frac_comp_Solver_"+s1[1]+".pdf"
 channel = s1[1]
 
 #Opens ROOT file
@@ -39,6 +41,13 @@ ttg1 = r.TH1F("ttg1","ttg1",50,0,0.11)
 ttg1.Add(hists["ttgg"],hists["ttqq"],ttDict["ttgg"],ttDict["ttqq"])
 ttq1 = r.TH1F("ttq1","ttq1",50,0,0.11)
 ttq1.Add(hists["ttqg"],hists["ttag"],ttDict["ttqg"],ttDict["ttag"]) 
+data = r.TH1F("data","data",50,0,0.11)
+data.Add(hists["data"],1)
+
+#Used in implimenting the Component Solver
+bg2 = bg1
+ttg2 = ttg1
+ttq2 = ttq1
 
 #Scales to large number to reduce template uncertainties
 bg.Scale(1000000.)
@@ -73,8 +82,10 @@ fit0.GetResult(1,fttg,dfttg)
 fit0.GetResult(2,fttq,dfttq)
 
 def scaling(histogram, frac):
+    '''Scales the histogram to the data'''
     histogram.Scale(frac*ndata/histogram.Integral()) 
 
+#Scales the histograms
 scaling(bg1,fbg)
 scaling(ttg1,fttg)
 scaling(ttq1,fttq)
@@ -82,7 +93,7 @@ scaling(ttq1,fttq)
 sm1 = r.TH1F("sm1", "sm1",50,0,0.11)    #histogram sm1
 sm1.Add(bg1,ttg1,1.,1.)                 #fills sm1
 
-sm2 = r.TH1F("sm2","sm2",50,0,0.11)     #histogram sm2
+sm2 = r.TH1F(channel+" TFracFit",channel+" TFracFit",50,0,0.11)     #histogram sm2
 sm2.Add(sm1,ttq1,1.,1.)                 #fills sm2
 
 #Color settings for histograms
@@ -96,6 +107,7 @@ sm1.Draw("HIST Same")                        #draws sm2
 bg1.Draw("HIST Same")                        #draws bg1
 hists["data"].Draw("Ep Same")
 
+#Sets the legend 
 leg = r.TLegend(0.7,0.4,0.9,0.7)
 leg.SetHeader("The Contribution")
 leg.AddEntry(sm2,"Quark","f")
@@ -121,29 +133,67 @@ print "fttg from Lhood=", fttg, "+/-", dfttg
 print "fttq from Lhood=", fttq, "+/-", dfttq
 print "fttq/(fttg+fttq)=", fttq/sum([fttq,fttg])
 
-#Prints histograms to file                                            
+
+################################################################################################################
+'''Component Solver'''
+
+#Converts histograms to ntuples
+bgBins = [bg.GetBinContent(i)*ndata*fJetFracs.backgroundFrac/bg.Integral() for i in range(bg.GetNbinsX()+2)]
+ttgBins = [ttg.GetBinContent(i)*ndata/ttg.Integral() for i in range(ttg.GetNbinsX()+2)]
+ttqBins = [ttq.GetBinContent(i)*ndata/ttq.Integral() for i in range(ttq.GetNbinsX()+2)]
+dataBins = [data.GetBinContent(i) for i in range(data.GetNbinsX()+2)]
+
+#Impliments the Component Solver
+compSolver = componentSolver(observed = dataBins, base = bgBins, components = [ttgBins,ttqBins])
+print compSolver
+print "background Fraction" ,fJetFracs.backgroundFrac
+print "fraction sum ", sum(compSolver.fractions,fJetFracs.backgroundFrac)
+print "fraction: ", compSolver.fractions[1]/sum(compSolver.fractions)
+
+#Prints histograms to file                                           
 c0.Print(path_name)
 
+#Scales from the results of the Component Solver
+scaling(bg2,fJetFracs.backgroundFrac)
+scaling(ttq2,compSolver.fractions[1])
+scaling(ttg2,compSolver.fractions[0])
+
+c1 = r.TCanvas("c1","compSolver", 600,400)
+
+sm3 = r.TH1F("sm3","sm3",50,0,0.11)
+sm3.Add(bg2,ttg2,1.,1.)
+
+sm4 = r.TH1F(channel+" compSolver",channel+" compSolver",50,0,0.11)
+sm4.Add(sm3,ttq2,1.,1.)   
+
+sm4.SetFillColor(r.kBlue)
+sm3.SetFillColor(r.kRed)
+bg2.SetFillColor(r.kGreen+3)
+
+sm4.Draw("HIST Same")
+sm3.Draw("HIST Same")
+bg2.Draw("HIST Same")
+hists["data"].Draw("Ep Same")
+
+c1.Print(path_name2)
+
 #Opens a file for storing fraction values
-f = open("frac_set.txt","a+r")
+f = open("frac_comparitive.txt","a+r")
 
-#Makes sure to append only for two fractions
-length = len(f.readlines())
-if length < 6:
-
-    if s1[1] == "el":
-        f.write("Electron ")
-    if s1[1] == "mu":
-        f.write("Muon ")
-
-    f.write("Fractions\n")
-
-else:
-    print "File full"
-    exit()
-
-table1 = "fttg  = "+str(fttg)+"  +/- "+str(dfttg)+"\n"
+table1 = "fttg  = "+str(fttg)+"  +/- "+str(dfttg)+ "\n"
 table2 = "fttq  = "+str(fttq)+" +/- "+str(dfttq)+"\n"
+table3 = "fttq/(fttq+fttg)  = "+str(fttq/sum([fttg,fttq]))+"\n"
+table4 = "sumFraction  = "+str(sum([fttg,fttq,fbg]))+"\n \n"
+
+table5 = str(compSolver)+"\n \n"+"ftq/(fttq+fttg)  = "+str(compSolver.fractions[1]/sum(compSolver.fractions))+"\n \n"+"sumFraction  = "+str(sum(compSolver.fractions,fJetFracs.backgroundFrac))+"\n \n \n"
+
 #Writes the two fractions to the file
+'''
+f.write("TFractionFitter Results: \n")
 f.write(table1)
 f.write(table2)
+f.write(table3)
+f.write(table4)
+f.write("componentSolver Results: \n")
+f.write(table5)
+'''
