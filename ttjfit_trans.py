@@ -149,7 +149,7 @@ print compSolver
 print "background Fraction" ,fJetFracs.backgroundFrac
 print "fraction sum ", sum(compSolver.fractions,fJetFracs.backgroundFrac)
 print "fraction: ", compSolver.fractions[1]/sum(compSolver.fractions)
-
+print ttgBins[1],ttqBins[1],bgBins[1],dataBins[1]
 #Prints histograms to file                                           
 c0.Print(path_name)
 
@@ -174,6 +174,14 @@ sm4.Draw("HIST Same")
 sm3.Draw("HIST Same")
 bg2.Draw("HIST Same")
 hists["data"].Draw("Ep Same")
+
+leg = r.TLegend(0.7,0.4,0.9,0.7)
+leg.SetHeader("The Contribution")
+leg.AddEntry(sm4,"Quark","f")
+leg.AddEntry(sm3,"Gluon","f")
+leg.AddEntry(bg2,"Background","f")
+leg.AddEntry(hists["data"],"Data","ep")
+leg.Draw()
 
 c1.Print(path_name2)
 
