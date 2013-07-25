@@ -5,21 +5,19 @@ import sys
 import numpy as np
 
 class fiveJetEfficiencyFilter(object):
-    def __init__(self,rootFile):
+    def __init__(self,effDict, preFracDict, eff4_5Dict, signalDict):
         '''Calculates the background fraction as well as the background and tt components'''
 
         self.bgComps = ["wj","st","dy","mj"]
         self.ttComps = ["ttgg","ttqg","ttag","ttqq"]
 
-        channelList = self.parseArgument(rootFile)
+#        channelList = self.parseArgument(rootFile)
 
-        effDict, preFracDict, eff4_5Dict, signalDict = self.parseData(channelList)
+#        effDict, preFracDict, eff4_5Dict, signalDict = self.parseData(channelList)
 
         tt_5jet,bg_5jet = self.calculateFractions(effDict, preFracDict, eff4_5Dict, signalDict)
 
         backgroundFrac = self.calculateBackground(tt_5jet,bg_5jet)
-
-        
 
         for item in ["backgroundFrac","tt_5jet","bg_5jet","effDict", "preFracDict", "eff4_5Dict", "signalDict"]:
             setattr(self,item,eval(item))
